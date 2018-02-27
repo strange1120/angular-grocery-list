@@ -89,7 +89,11 @@ app.controller("HomeController", ["$scope", "GroceryService", function($scope, G
 
     $scope.removeItem = function(entry){
         GroceryService.removeItem(entry);
-    }
+    };
+
+    $scope.markCompleted = function(entry){
+        GroceryService.markCompleted(entry);
+    };
 
 }]);
 
