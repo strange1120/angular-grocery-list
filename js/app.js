@@ -24,14 +24,14 @@ app.service("GroceryService", function(){
     var groceryService = {};
 
     groceryService.groceryItems = [
-        {id: 1, completed: true, itemName: 'milk', date: '2014-10-00'},
-        {id: 2, completed: true, itemName: 'cookies', date: '2014-10-01'},
-        {id: 3, completed: true, itemName: 'ice cream', date: '2014-10-02'},
-        {id: 4, completed: true, itemName: 'potatoes', date: '2014-10-02'},
-        {id: 5, completed: true, itemName: 'cereal', date: '2014-10-03'},
-        {id: 6, completed: true, itemName: 'bread', date: '2014-10-03'},
-        {id: 7, completed: true, itemName: 'eggs', date: '2014-10-04'},
-        {id: 8, completed: true, itemName: 'tortillas', date: '2014-10-04'}
+        {id: 1, completed: true, itemName: 'milk', date: new Date("March 1, 2018 11:13:00")},
+        {id: 2, completed: true, itemName: 'cookies', date: new Date("March 1, 2018 11:13:00")},
+        {id: 3, completed: true, itemName: 'ice cream', date: new Date("March 1, 2018 11:13:00")},
+        {id: 4, completed: true, itemName: 'potatoes', date: new Date("March 2, 2018 11:13:00")},
+        {id: 5, completed: true, itemName: 'cereal', date: new Date("March 3, 2018 11:13:00")},
+        {id: 6, completed: true, itemName: 'bread', date: new Date("March 3, 201 11:13:00")},
+        {id: 7, completed: true, itemName: 'eggs', date: new Date("March 4, 2018 11:13:00")},
+        {id: 8, completed: true, itemName: 'tortillas', date: new Date("March 5, 2018 11:13:00")}
     ];
 
 
@@ -56,12 +56,18 @@ app.service("GroceryService", function(){
         }
     };
 
+    groceryService.removeItem = function(entry){
+        var index = groceryService.groceryItems.indexOf(entry);
+
+        groceryService.groceryItems.splice(index, 1);
+    };
+
     groceryService.save = function(entry) {
 
         var updatedItem = groceryService.findById(entry.id);
 
         if(updatedItem){
-            
+
             updatedItem.completed = entry.completed;
             updatedItem.itemName = entry.itemName;
             updatedItem.date = entry.date;
@@ -81,6 +87,10 @@ app.controller("HomeController", ["$scope", "GroceryService", function($scope, G
 
     $scope.groceryItems = GroceryService.groceryItems;
 
+    $scope.removeItem = function(entry){
+        GroceryService.removeItem(entry);
+    }
+
 }]);
 
 app.controller("GroceryListItemController", ["$scope", "$routeParams", "$location", "GroceryService", function($scope, $routeParams, $location, GroceryService){
@@ -91,9 +101,17 @@ app.controller("GroceryListItemController", ["$scope", "$routeParams", "$locatio
         $scope.groceryItem = _.clone(GroceryService.findById(parseInt($routeParams.id)));
     }
 
+
     $scope.save = function(){
         GroceryService.save( $scope.groceryItem );
         $location.path("/");
     };
 
 }]);
+
+app.directive("tbGroceryItem", function(){
+    return{
+        restrict: "E",
+        templateUrl: "views/groceryItem.html"
+    }
+});
