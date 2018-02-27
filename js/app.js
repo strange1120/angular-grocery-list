@@ -1,4 +1,3 @@
-
 var app = angular.module('groceryListApp', ["ngRoute"]);
 
 app.config(function($routeProvider){
@@ -35,19 +34,23 @@ app.service("GroceryService", function(){
         {id: 8, completed: true, itemName: 'tortillas', date: '2014-10-04'}
     ];
 
-
     groceryService.getNewId = function(){
-        if(groceryService.newId) {
+
+        if(groceryService.newId){
             groceryService.newId++;
             return groceryService.newId;
+        }else{
+            var maxId = _.max(groceryService.groceryItems, function(entry){ return entry.id;})
+            groceryService.newId = maxId.id + 1;
+            return groceryService.newId;
         }
-        else {
+    };
 
-        }
-    }
     groceryService.save = function(entry){
+        entry.id = groceryService.getNewId();
         groceryService.groceryItems.push(entry);
     };
+
 
     return groceryService;
 
@@ -63,11 +66,13 @@ app.controller("GroceryListItemsController", ["$scope", "$routeParams", "$locati
 
     $scope.groceryItems = GroceryService.groceryItems;
 
-    $scope.groceryItem = { id:7, completed:true, itemName: "cheese", date: new Date() }
+    $scope.groceryItem = { id:0, completed:true, itemName: "", date: new Date() }
 
     $scope.save = function(){
         GroceryService.save( $scope.groceryItem );
         $location.path("/");
     }
+
+    console.log($scope.groceryItems);
 
 }]);
