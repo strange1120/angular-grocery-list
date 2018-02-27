@@ -1,3 +1,4 @@
+
 var app = angular.module('groceryListApp', ["ngRoute"]);
 
 app.config(function($routeProvider){
@@ -19,20 +20,24 @@ app.config(function($routeProvider){
         })
 });
 
-app.service("GroceryService", function(){
+app.service("GroceryService", function($http){
 
     var groceryService = {};
 
-    groceryService.groceryItems = [
-        {id: 1, completed: true, itemName: 'milk', date: new Date("March 1, 2018 11:13:00")},
-        {id: 2, completed: true, itemName: 'cookies', date: new Date("March 1, 2018 11:13:00")},
-        {id: 3, completed: true, itemName: 'ice cream', date: new Date("March 1, 2018 11:13:00")},
-        {id: 4, completed: true, itemName: 'potatoes', date: new Date("March 2, 2018 11:13:00")},
-        {id: 5, completed: true, itemName: 'cereal', date: new Date("March 3, 2018 11:13:00")},
-        {id: 6, completed: true, itemName: 'bread', date: new Date("March 3, 201 11:13:00")},
-        {id: 7, completed: true, itemName: 'eggs', date: new Date("March 4, 2018 11:13:00")},
-        {id: 8, completed: true, itemName: 'tortillas', date: new Date("March 5, 2018 11:13:00")}
-    ];
+    groceryService.groceryItems = [];
+
+    $http.get("data/server_data.json")
+        .success(function(data){
+            groceryService.groceryItems = data;
+
+            for(var item in groceryService.groceryItems){
+                groceryService.groceryItems[item].date = new Date(groceryService.groceryItems[item].date);
+            }
+        })
+        .error(function(data,status){
+            alert("Things went wrong!");
+        });
+
 
 
     groceryService.findById = function(id){
@@ -56,10 +61,25 @@ app.service("GroceryService", function(){
         }
     };
 
-    groceryService.removeItem = function(entry){
-        var index = groceryService.groceryItems.indexOf(entry);
+    groceryService.markCompleted = function(entry){
+        entry.completed = !entry.completed;
+    };
 
-        groceryService.groceryItems.splice(index, 1);
+    groceryService.removeItem = function(entry){
+
+        $http.post("data/delete_item.json", {id: entry.id})
+            .success(function(data){
+
+                if(data.status){
+                    var index = groceryService.groceryItems.indexOf(entry);
+                    groceryService.groceryItems.splice(index, 1);
+                }
+
+            })
+            .error(function(data, status){
+
+            });
+
     };
 
     groceryService.save = function(entry) {
@@ -68,12 +88,31 @@ app.service("GroceryService", function(){
 
         if(updatedItem){
 
-            updatedItem.completed = entry.completed;
-            updatedItem.itemName = entry.itemName;
-            updatedItem.date = entry.date;
+            $http.post("data/updated_item.json", entry)
+
+                .success(function(data){
+
+                    if(data.status == 1) {
+                        updatedItem.completed = entry.completed;
+                        updatedItem.itemName = entry.itemName;
+                        updatedItem.date = entry.date;
+                    }
+
+                })
+                .error(function(data, status){
+
+                })
 
         }else {
-            entry.id = groceryService.getNewId();
+
+            $http.post("data/added_item.json", entry)
+                .success(function(data){
+                    entry.id = data.newId;
+                })
+                .error(function(data, status){
+
+                });
+
             groceryService.groceryItems.push(entry);
         }
 
@@ -94,6 +133,10 @@ app.controller("HomeController", ["$scope", "GroceryService", function($scope, G
     $scope.markCompleted = function(entry){
         GroceryService.markCompleted(entry);
     };
+
+    $scope.$watch( function(){ return GroceryService.groceryItems; }, function(groceryItems) {
+        $scope.groceryItems = groceryItems;
+    })
 
 }]);
 
